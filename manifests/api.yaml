@@ -1,0 +1,69 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: shamitha-sh
+  labels:
+    name: shamitha-sh
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-deployment
+  labels:
+    app: api
+  namespace: shamitha-sh
+spec:
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: api
+        image: shamithash1:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+    
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-service
+  namespace: shamitha-sh
+spec:
+  selector:
+    app: api
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+    nodePort: 31033
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-ingress
+  namespace: shamitha-sh
+spec:
+  rules:
+  - host: shamitha-sh.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-service
+            port:
+              number: 8080

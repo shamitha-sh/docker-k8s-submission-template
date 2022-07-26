@@ -1,0 +1,67 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: shamitha-sh
+  labels:
+    name: shamitha-sh
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: converter-service
+  namespace: shamitha-sh
+spec:
+  selector:
+    app: converter
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+    nodePort: 31034
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: partof-config
+  namespace: shamitha-sh
+  labels:
+    app: config
+data:
+  PART_OF: CWiCS
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: converter-deployment
+  labels:
+    app: converter
+  namespace: shamitha-sh
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: converter
+  template:
+    metadata:
+      labels:
+        app: converter
+    spec:
+      containers:
+      - name: converter
+        image: ghcr.io/adyanth/docker-k8s-final-assessment:converter-latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SERVE_PATH
+          value: "convert"
+        - name: PART_OF
+          valueFrom:
+            configMapKeyRef:
+              name: partof-config #the config map this value comes from
+              key: PART_OF
